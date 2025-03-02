@@ -34,4 +34,17 @@ public class UserRestController {
     public ResponseEntity<List<ChatUser>> getUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
+    @PutMapping("/{username}")
+    public ResponseEntity<ChatUser> updateUser(@PathVariable String username,
+                                               @RequestBody ChatUser user) {
+        ChatUser updatedUser = userService.updateUser(username, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+        userService.deleteUser(username);
+        return ResponseEntity.ok().build();
+    }
 }

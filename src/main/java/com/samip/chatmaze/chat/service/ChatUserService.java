@@ -39,5 +39,16 @@ public class ChatUserService {
         return user;
     }
 
+    public ChatUser updateUser(String username, ChatUser user) {
+        ChatUser existingUser = getUser(username);
+        existingUser.setFirstName(user.getFirstName());
+        existingUser.setLastName(user.getLastName());
 
+        return chatUserRepository.save(existingUser);
+    }
+
+    public void deleteUser(String username) {
+        ChatUser user = getUser(username);
+        chatUserRepository.delete(user);
+    }
 }

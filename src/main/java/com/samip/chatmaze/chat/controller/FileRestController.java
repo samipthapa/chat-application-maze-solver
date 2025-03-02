@@ -40,4 +40,10 @@ public class FileRestController {
                     .body("Failed to download file: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<?> deleteFile(@PathVariable Long fileId) {
+        fileService.deleteFile(fileId);
+        return ResponseEntity.ok("File deleted successfully");
+    }
 }

@@ -31,4 +31,16 @@ public class MessageRestController {
     ) {
         return ResponseEntity.ok(messageService.getConversation(senderId, receiverId));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable("id") Long id) {
+        messageService.deleteMessage(id);
+        return ResponseEntity.ok().build();
+    }
+
+//    Only allowing the content to be updated
+    @PutMapping("/updateContent/{id}")
+    public ChatMessage changeContent(@PathVariable("id") Long id, @RequestBody ChatMessage message) {
+        return messageService.changeMessageContent(id, message.getContent());
+    }
 }

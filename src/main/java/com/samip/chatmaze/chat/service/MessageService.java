@@ -1,5 +1,6 @@
 package com.samip.chatmaze.chat.service;
 
+import com.samip.chatmaze.chat.entity.ChatFile;
 import com.samip.chatmaze.chat.entity.ChatMessage;
 import com.samip.chatmaze.chat.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class MessageService {
         return null;
     }
 
+//    Delete unsaved messages older than 5 minutes
     @Scheduled(fixedRate = 300000)
     public void deleteOldUnsavedMessages() {
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
@@ -52,5 +54,18 @@ public class MessageService {
             messageRepository.deleteAll(oldMessages);
             log.info("Deleted old unsaved messages: {}", oldMessages);
         }
+    }
+
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
+    }
+
+    public ChatMessage changeMessageContent(Long id, String content) {
+        ChatMessage message = messageRepository.findById(id).orElse(null);
+        if (message != null) {
+            message.setContent(content);
+            return messageRepository.save(message);
+        }
+        return null;
     }
 }

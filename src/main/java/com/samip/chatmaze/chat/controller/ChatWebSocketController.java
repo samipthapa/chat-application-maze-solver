@@ -37,7 +37,6 @@ public class ChatWebSocketController {
 //   One to one chat messages are sent to the {user}/queue/messages destination
     @MessageMapping("/chat")
     public void processMessage(@Payload ChatMessage message) {
-        message.setTimestamp(LocalDateTime.now());
         ChatMessage dbMsg = messageService.saveMessage(message);
 
         messagingTemplate.convertAndSendToUser(
@@ -62,6 +61,21 @@ public class ChatWebSocketController {
                     .content(dbMsg.getContent())
                     .timestamp(dbMsg.getTimestamp())
                     .build()
+        );
+    }
+
+    @MessageMapping("/chat/broadcast")
+    public void broadcastMessage(@Payload ChatMessage message) {
+        ChatMessage dbMsg = messageService.saveMessage(message);
+
+        messagingTemplate.convertAndSend("/topic/messages",
+                ChatMessage.builder()
+                        .id(dbMsg.getId())
+                        .sender(dbMsg.getSender())
+                        .receiver(dbMsg.getReceiver())
+                        .content(dbMsg.getContent())
+                        .timestamp(dbMsg.getTimestamp())
+                        .build()
         );
     }
 

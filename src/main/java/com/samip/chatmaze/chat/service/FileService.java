@@ -3,6 +3,7 @@ package com.samip.chatmaze.chat.service;
 import com.samip.chatmaze.chat.entity.ChatFile;
 import com.samip.chatmaze.chat.exception.FileStorageException;
 import com.samip.chatmaze.chat.repository.FileRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class FileService {
 
     @Value("${storage.directory}")
@@ -35,6 +37,7 @@ public class FileService {
             throw new FileStorageException("Invalid file type");
         }
         File directory = new File(STORAGE_DIRECTORY);
+
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -70,5 +73,17 @@ public class FileService {
                 || contentType.equals("image/jpg")
                 || contentType.equals("image/png")
                 || contentType.equals("application/pdf");
+    }
+
+    public void deleteFile(Long fileId) {
+        ChatFile chatFile = fileRepository.findById(fileId)
+                .orElseThrow(() -> new FileStorageException("File not found"));
+        File file = new File(chatFile.getFilePath());
+
+        if (file.exists()) {
+            var isDeleted = file.delete();
+            log.info("File deleted: {}", isDeleted);
+        }
+        fileRepository.delete(chatFile);
     }
 }

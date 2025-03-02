@@ -8,6 +8,22 @@ This project consists of two main tasks:
 
 2. Maze Shortest Distance Algorithm: An algorithm to compute the shortest path within a given maze represented as a 2D grid.
 
+Endpoint: `POST /maze/solve`
+Body:
+```
+{
+    "maze": [
+        [0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0]
+    ],
+    "start": [0, 0],
+    "end": [4, 4]
+}
+```
+
 ## Setup Instructions
 
 ### 1. Clone the repository:
