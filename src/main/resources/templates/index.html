@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Real Time Chat Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.1/stomp.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 600px;
+        }
+        .btn-spacing {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Currently logged in: <span th:text="${user != null ? user.firstName : 'Guest'}"></span></h2>
+    <h4 class="mb-3">Available Users</h4>
+    <div>
+        <ul class="list-unstyled">
+            <li th:each="chatUser : ${users}">
+                <button class="btn btn-primary btn-spacing" th:text="'Chat with ' + ${chatUser.firstName}"
+                        th:data-username="${chatUser.username}" th:data-firstName="${chatUser.firstName}" onclick="startChat(this)"></button>
+            </li>
+        </ul>
+    </div>
+
+    <div id="chatSection" class="chat-section" style="display: none;">
+        <h4 id="chatWithUser"></h4>
+        <div class="chat-box" id="messageBox"></div>
+        <div class="mb-3">
+            <label for="messageInput" class="form-label">Your message:</label>
+            <textarea class="form-control" id="messageInput" rows="3"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let stompClient = null;
+    let selectedReceiver = null;
+
+    function connect() {
+        const socket = new SockJS('/chat');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            fetchMessages();
+        });
+    }
+
+    function startChat(button) {
+        selectedReceiver  = button.getAttribute('data-username');
+        let firstName = button.getAttribute('data-firstName');
+        document.getElementById('chatSection').style.display = 'block';
+        document.getElementById('chatWithUser').innerText = 'Chatting with ' + firstName ;
+    }
+
+    function sendMessage() {
+        /*<![CDATA[*/
+        const sender = /*[[${user.username}]]*/ 'defaultUser';
+        if (!selectedReceiver) {
+            alert('Please select a user to chat with.');
+            return;
+        }
+        const content = document.getElementById('messageInput').value;
+        const message = {
+            sender: sender,
+            receiver: selectedReceiver,
+            content: content
+        };
+        stompClient.send("/app/chat", {}, JSON.stringify(message));
+        document.getElementById('messageInput').value = '';
+    }
+
+    function fetchMessages() {
+        /*<![CDATA[*/
+        const sender = /*[[${user.username}]]*/ 'defaultUser';
+        stompClient.subscribe(`/user/${sender}/queue/messages`, function (response) {
+            const message = JSON.parse(response.body);
+            displayMessage(message.content, message.sender, 'received');
+        });
+    }
+
+    function displayMessage(content, sender, type) {
+        const messageBox = document.getElementById('messageBox');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message');
+
+        if (type === 'sent') {
+            messageDiv.classList.add('sent-message');
+        } else if (type === 'received') {
+            messageDiv.classList.add('received-message');
+        }
+
+        const senderSpan = document.createElement('span');
+        senderSpan.style.fontWeight = 'bold';
+        senderSpan.textContent = sender + ": ";
+
+        const contentText = document.createTextNode(content);
+
+        messageDiv.appendChild(senderSpan);
+        messageDiv.appendChild(contentText);
+
+        messageBox.appendChild(messageDiv);
+        messageBox.scrollTop = messageBox.scrollHeight;
+    }
+
+
+    window.onload = connect;
+</script>
+</body>
+</html>
