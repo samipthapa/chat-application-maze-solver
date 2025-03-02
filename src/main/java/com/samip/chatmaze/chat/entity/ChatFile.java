@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "chat_files")
@@ -13,12 +12,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class File {
+public class ChatFile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private UUID id;
+    private Long id;
 
     @Column(name = "file_name")
     private String fileName;
@@ -26,9 +25,11 @@ public class File {
     @Column(name = "mime_type")
     private String mimeType;
 
-    @Lob
-    @Column(name = "data")
-    private byte[] data;
+    @Column(name = "file_path")
+    private String filePath;
+
+    @Column(name ="size")
+    private Long size;
 
     @Column(name = "uploaded_at")
     private LocalDateTime uploadedAt;

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "chat_messages")
@@ -13,12 +12,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Message {
+@ToString
+public class ChatMessage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private UUID id;
+    private Long id;
 
     @Column(name = "sender")
     private String sender;
@@ -29,12 +29,13 @@ public class Message {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "status")
-    private String status;
+    @Column(name = "saved")
+    @Builder.Default()
+    private boolean saved = false;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "file_id", referencedColumnName = "id")
-    private File file;
+    private ChatFile file;
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;

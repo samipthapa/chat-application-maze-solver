@@ -1,7 +1,9 @@
 package com.samip.chatmaze.chat.service;
 
 import com.samip.chatmaze.chat.entity.ChatFile;
+import com.samip.chatmaze.chat.exception.FileStorageException;
 import com.samip.chatmaze.chat.repository.FileRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +17,9 @@ import java.util.Objects;
 @Service
 public class FileService {
 
-    private final String STORAGE_DIRECTORY = "D:\\Storage";
+    @Value("${storage.directory}")
+    private String STORAGE_DIRECTORY;
+
     private final FileRepository fileRepository;
 
     public FileService(FileRepository fileRepository) {
@@ -25,10 +29,10 @@ public class FileService {
     public ChatFile storeFile(MultipartFile file) throws IOException {
 
         if (file == null) {
-            throw new RuntimeException("File cannot be empty");
+            throw new FileStorageException("File cannot be empty");
         }
         if (file.getContentType() != null && !isValidMimeType(file.getContentType())) {
-            throw new RuntimeException("Invalid file type");
+            throw new FileStorageException("Invalid file type");
         }
         File directory = new File(STORAGE_DIRECTORY);
         if (!directory.exists()) {
@@ -36,9 +40,14 @@ public class FileService {
         }
         var targetFile = new File(STORAGE_DIRECTORY + File.separator + file.getOriginalFilename());
         if (!Objects.equals(targetFile.getParent(), STORAGE_DIRECTORY)) {
-            throw new RuntimeException("Invalid file path");
+            throw new FileStorageException("Invalid file path");
         }
-        Files.copy(file.getInputStream(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        try {
+            Files.copy(file.getInputStream(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new FileStorageException("Failed to store file");
+        }
 
         ChatFile chatFile = ChatFile.builder()
                 .fileName(file.getOriginalFilename())
@@ -53,7 +62,7 @@ public class FileService {
 
     public ChatFile getFile(Long fileId) throws IOException {
         return fileRepository.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+                .orElseThrow(() -> new FileStorageException("File not found"));
     }
 
     private boolean isValidMimeType(String contentType) {
